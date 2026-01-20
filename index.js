@@ -30,15 +30,33 @@ async function run() {
 
     const productCollection = client.db('emaJohnDB').collection('products');
 
+
+    // page e data vag kora
     app.get('/products', async(req, res) => {
-        const result = await productCollection.find().toArray();
+      try {
+        const page = parseInt(req.query.page) || 0;
+        const size = parseInt(req.query.size) || 10;
+        console.log("pagination query", page, size);
+        const result = await productCollection.find().skip(page * size).limit(size).toArray();
         res.send(result);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).send({ error: 'Failed to fetch products' });
+      }
     })
 
-
-    app.get ('/productsCount', async (req,res) => {
-      const count = await productCollection.estimatedDocumentCount();
-      res.send({count});
+    app.post ('/productByIds', async (req,res ) => {
+      const ids = req.body;
+      res.send([]);
+    })
+    app.get('/productsCount', async (req, res) => {
+      try {
+        const count = await productCollection.estimatedDocumentCount();
+        res.send({ count });
+      } catch (error) {
+        console.error('Error fetching product count:', error);
+        res.status(500).send({ error: 'Failed to fetch product count' });
+      }
     })
 
     // Send a ping to confirm a successful connection
